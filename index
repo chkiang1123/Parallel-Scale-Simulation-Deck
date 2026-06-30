@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parallel Scale Simulation Deck</title>
+    <style>
+        :root {
+            --red: #ff4d4d;
+            --orange: #ffa500;
+            --green: #2ecc71;
+            --blue: #3498db;
+            --purple: #9b59b6;
+            --gold: #d4af37;
+            --silver: #bdc3c7;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #1a1a1f;
+            color: #fff;
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-sizing: border-box;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 100%;
+            background: #25252d;
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 12px 32px rgba(0,0,0,0.4);
+            box-sizing: border-box;
+        }
+
+        h1 {
+            text-align: center;
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 28px;
+            letter-spacing: 1px;
+        }
+
+        /* --- SETUP SECTION --- */
+        #setup-section {
+            background: #33333f;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .input-group {
+            display: inline-block;
+            margin: 10px 15px;
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: bold;
+            font-size: 15px;
+        }
+
+        .input-group input, .table-input {
+            width: 85px;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #444;
+            font-size: 16px;
+            text-align: center;
+            background: #fff;
+            color: #000;
+            font-weight: bold;
+        }
+
+        button {
+            padding: 12px 30px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-start {
+            background-color: #2ecc71;
+            color: white;
+            margin: 20px auto 0 auto;
+            display: block;
+            font-size: 18px;
+        }
+        .btn-start:hover { background-color: #27ae60; }
+
+        /* --- CORE SYSTEM WORKSPACE LAYOUT --- */
+        #game-section {
+            display: none;
+            width: 100%;
+        }
+
+        .workspace-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            width: 100%;
+        }
+
+        .scale-column {
+            background: #2d2d37;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+            width: 100%;
+        }
+
+        .scale-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-align: center;
+            padding-bottom: 8px;
+            border-bottom: 2px solid rgba(255,255,255,0.05);
+        }
+
+        /* --- GRAPHIC CANVAS --- */
+        .scale-graphic-container {
+            height: 380px; 
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            position: relative;
+            background: #141419;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            padding: 0 10px 20px 10px;
+            box-sizing: border-box;
+            width: 100%;
+        }
+
+        .scale-base {
+            width: 120px;
+            height: 12px;
+            background: #444;
+            border-radius: 4px 4px 0 0;
+            position: relative;
+            z-index: 1;
+        }
+        .scale-pillar {
+            width: 20px;
+            height: 250px;
+            background: #666;
+            position: absolute;
+            bottom: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1;
+        }
+
+        .scale-beam-assembly {
+            position: absolute;
+            top: 80px;
+            width: 90%; 
+            max-width: 500px;
+            left: auto;
+            transition: transform 0.5s ease-in-out;
+            transform-origin: center center;
+            z-index: 2;
+        }
+        .scale-beam {
+            width: 100%;
+            height: 10px;
+            position: relative;
+            border-radius: 4px;
+        }
+        .primary-col .scale-beam { background: var(--gold); }
+        .secondary-col .scale-beam { background: var(--silver); }
+
+        .hanger {
+            position: absolute;
+            top: 10px;
+            width: 2px;
+            height: 50px;
+            background: #888;
+            transform-origin: top center;
+        }
+        .hanger-left { left: 10px; }
+        .hanger-right { right: 10px; }
+
+        /* Modified Pan holding structurally sound physics distribution */
+        .pan {
+            position: absolute;
+            top: 50px;
+            width: 160px;
+            height: 210px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 2px dashed #444;
+            border-bottom: 6px solid #555;
+            border-radius: 4px 4px 12px 12px;
+            transform: translateX(-50%) rotate(0deg);
+            transform-origin: top center;
+            transition: transform 0.5s ease-in-out;
+            display: flex;
+            flex-direction: column-reverse; /* Stacks children directly from the bottom floor up! */
+            justify-content: flex-start;
+            padding: 8px;
+            box-sizing: border-box;
+            gap: 6px;
+        }
+        .pan-left { left: 50%; }
+        .pan-right { left: 50%; }
+
+        /* Physics Layer 1 (Bottom): Aggregate heavy weight blocks */
+        .pan-blocks-shelf {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            width: 100%;
+        }
+
+        /* Physics Layer 2 (Top): Loose individual items stacking on top of blocks */
+        .pan-cubes-shelf {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            align-content: flex-start;
+            gap: 4px;
+            width: 100%;
+            padding-bottom: 4px;
+        }
+
+        .cube-sprite {
+            width: 14px;
+            height: 14px;
+            border-radius: 3px;
+            box-shadow: inset 0 0 4px rgba(0,0,0,0.6), 0 1px 2px rgba(0,0,0,0.3);
+            animation: popIn 0.2s ease-out;
+        }
+
+        .color-row-strip {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            height: 24px;
+            padding: 0 6px;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 11px;
+            font-weight: bold;
+            color: #000;
+            box-shadow: inset 0 0 4px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.2);
+            animation: popIn 0.2s ease-out;
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .mini-cube-icon-container {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+        .mini-cube-dot {
+            width: 8px;
+            height: 8px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 1px;
+        }
+
+        /* Results Banners */
+        .result-box {
+            background: #111;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            border-left: 6px solid #555;
+        }
+        .balanced { color: #2ecc71; border-left-color: #2ecc71; }
+        .left-heavy { color: #f1c40f; border-left-color: #f1c40f; }
+        .right-heavy { color: #e67e22; border-left-color: #e67e22; }
+
+        /* --- INPUT TABLES DESIGN --- */
+        .table-container {
+            background: #1f1f26;
+            border-radius: 8px;
+            padding: 15px;
+            box-sizing: border-box;
+            width: 100%;
+        }
+
+        .table-container h3 {
+            margin-top: 0;
+            margin-bottom: 12px;
+            font-size: 15px;
+            color: #aaa;
+            text-align: center;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 8px;
+            text-align: center;
+            border-bottom: 1px solid #2d2d37;
+        }
+
+        th {
+            background-color: #141419;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #999;
+        }
+
+        .color-cell {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 10px;
+            font-weight: bold;
+            font-size: 14px;
+            padding-left: 10px;
+        }
+        .color-dot { width: 12px; height: 12px; border-radius: 3px; }
+
+        .table-input {
+            width: 70px;
+            padding: 6px;
+            font-size: 14px;
+        }
+
+        /* --- GLOBAL CONTROL ACTIONS --- */
+        .bottom-actions {
+            width: 100%;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 2px solid rgba(255,255,255,0.05);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .btn-calculate {
+            background-color: #3498db;
+            color: white;
+            font-size: 20px;
+            padding: 15px 60px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
+            letter-spacing: 0.5px;
+        }
+        .btn-calculate:hover { background-color: #2980b9; transform: translateY(-1px); }
+        .btn-calculate:active { transform: translateY(1px); }
+
+        .btn-reset {
+            background: #e74c3c;
+            color: white;
+            padding: 8px 20px;
+            font-size: 14px;
+        }
+        .btn-reset:hover { background: #c0392b; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>⚖️ Parallel Scale Simulation Deck</h1>
+        
+        <div id="setup-section">
+            <h2>Step 1: Set Hidden Weights</h2>
+            <p style="color: #bbb; font-size: 14px; margin-top: -5px; margin-bottom: 15px;">Configure the target weight for each color block, then load the interface.</p>
+            
+            <div class="input-group">
+                <label style="color: var(--red);">🔴 Red (g)</label>
+                <input type="number" id="w-red" value="5" min="1" max="25">
+            </div>
+            <div class="input-group">
+                <label style="color: var(--orange);">🟠 Orange (g)</label>
+                <input type="number" id="w-orange" value="10" min="1" max="25">
+            </div>
+            <div class="input-group">
+                <label style="color: var(--green);">🟢 Green (g)</label>
+                <input type="number" id="w-green" value="15" min="1" max="25">
+            </div>
+            <div class="input-group">
+                <label style="color: var(--blue);">🔵 Blue (g)</label>
+                <input type="number" id="w-blue" value="3" min="1" max="25">
+            </div>
+            <div class="input-group">
+                <label style="color: var(--purple);">🟣 Purple (g)</label>
+                <input type="number" id="w-purple" value="8" min="1" max="25">
+            </div>
+
+            <button class="btn-start" onclick="startGame()">Lock Weights & Initialize Board</button>
+        </div>
+
+        <div id="game-section">
+            <div class="workspace-grid">
+                
+                <div class="scale-column primary-col">
+                    <div class="scale-title" style="color: var(--gold);">⭐ Primary Scale</div>
+                    
+                    <div class="scale-graphic-container">
+                        <div class="scale-base"><div class="scale-pillar"></div></div>
+                        <div id="beam-primary" class="scale-beam-assembly">
+                            <div class="scale-beam">
+                                <div class="hanger hanger-left">
+                                    <div id="pan-primary-left" class="pan pan-left">
+                                        <div class="pan-cubes-shelf" id="cubes-primary-left"></div>
+                                        <div class="pan-blocks-shelf" id="blocks-primary-left"></div>
+                                    </div>
+                                </div>
+                                <div class="hanger hanger-right">
+                                    <div id="pan-primary-right" class="pan pan-right">
+                                        <div class="pan-cubes-shelf" id="cubes-primary-right"></div>
+                                        <div class="pan-blocks-shelf" id="blocks-primary-right"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="result-primary" class="result-box balanced">⚖️ BALANCED</div>
+
+                    <div class="table-container">
+                        <h3>Primary Cube Quantities</h3>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Cube Color</th>
+                                    <th>👈 Left Pan</th>
+                                    <th>👉 Right Pan</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="color-cell"><div class="color-dot" style="background: var(--red);"></div> Red</td>
+                                    <td><input type="number" id="in-p-l-red" class="table-input" value="0" min="0" max="100"></td>
+                                    <td><input type="number" id="in-p-r-red" class="table-input" value="0" min="0" max="100"></td>
+                                </tr>
+                                <tr>
+                                    <td class="color-cell"><div class="color-dot" style="background: var(--orange);"></div> Orange</td>
+                                    <td><input type="number" id="in-p-l-orange" class="table-input" value="0" min="0" max="100"></td>
+                                    <td><input type="number" id="in-p-r-orange" class="table-input" value="0" min="0" max="100"></td>
+                                </tr>
+                                <tr>
+                                    <td class="color-cell"><div class="color-dot" style="background: var(--green);"></div> Green</td>
+                                    <td><input type="number" id="in-p-l-green" class="table-input" value="0" min="0" max="100"></td>
+                                    <td><input type="number" id="in-p-r-green" class="table-input" value="0" min="0" max="100"></td>
+                                </tr>
+                                <tr>
+                                    <td class="color-cell"><div class="color-dot" style="background: var(--blue);"></div> Blue</td>
+                                    <td><input type="number" id="in-p-l-blue" class="table-input" value="0" min="0" max="100"></td>
+                                    <td><input type="number" id="in-p-r-blue" class="table-input" value="0" min="0" max="100"></td>
+                                </tr>
+                                <tr>
+                                    <td class="color-cell"><div class="color-dot" style="background: var(--purple);"></div> Purple</td>
+                                    <td><input type="number" id="in-p-l-purple" class="table-input" value="0" min="0" max="100"></td>
+                                    <td><input type="number" id="in-p-r-purple" class="table-input" value="0" min="0" max="100"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="scale-column secondary-col">
+                    <div class="scale-title" style="color: var(--silver);">🌙 Secondary Scale</div>
+                    
+                    <div class="scale-graphic-container">
+                        <div class="scale-base"><div class="scale-pillar"></div></div>
+                        <div id="beam-secondary" class="scale-beam-assembly">
+                            <div class="scale-beam">
+                                <div class="hanger hanger-left">
+                                    <div id="pan-secondary-left" class="pan pan-left">
+                                        <div class="pan-cubes-shelf" id="cubes-secondary-left"></div>
+                                        <div class="pan-blocks-shelf" id="blocks-secondary-left"></div>
+                                    </div>
+                                </div>
+                                <div class="hanger hanger-right">
+                                    <div id="pan-secondary-right" class="pan pan-right">
+                                        <div class="pan-cubes-shelf" id="cubes-secondary-right"></div>
+                                        <div class="pan-blocks-shelf" id="blocks-secondary-right"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="result-secondary" class="result-box balanced">⚖️ BALANCED</div>
+
+                    <div class="table-container">
+                        <h3>Secondary Cube Quantities</h3>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Cube Color</th>
+                                    <th>👈 Left Pan</th>
+                                    <th>👉 Right Pan</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="color-cell"><div class="color-dot" style="background: var(--red);"></div> Red</td>
+                                    <td><input type="number" id="in-s-l-red" class="table-input" value="0" min="0" max="100"></td>
+                                    <td><input type="number" id="in-s-r-red" class="table-input" value="0" min="0" max="100"></td>
+                                </tr>
+                                <tr>
+                                    <td class="color-cell"><div class="color-dot" style="background: var(--orange);"></div> Orange</td>
+                                    <td><input type="number" id="in-s-l-orange" class="table-input" value="0" min="0" max="100"></td>
+                                    <td><input type="number" id="in-s-r-orange" class="table-input" value="0" min="0" max="100"></td>
+                                </tr>
+                                <tr>
+                                    <td class="color-cell"><div class="color-dot" style="background: var(--green);"></div> Green</td>
+                                    <td><input type="number" id="in-s-l-green" class="table-input" value="0" min="0" max="100"></td>
+                                    <td><input type="number" id="in-s-r-green" class="table-input" value="0" min="0" max="100"></td>
+                                </tr>
+                                <tr>
+                                    <td class="color-cell"><div class="color-dot" style="background: var(--blue);"></div> Blue</td>
+                                    <td><input type="number" id="in-s-l-blue" class="table-input" value="0" min="0" max="100"></td>
+                                    <td><input type="number" id="in-s-r-blue" class="table-input" value="0" min="0" max="100"></td>
+                                </tr>
+                                <tr>
+                                    <td class="color-cell"><div class="color-dot" style="background: var(--purple);"></div> Purple</td>
+                                    <td><input type="number" id="in-s-l-purple" class="table-input" value="0" min="0" max="100"></td>
+                                    <td><input type="number" id="in-s-r-purple" class="table-input" value="0" min="0" max="100"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="bottom-actions">
+                <button class="btn-calculate" onclick="processAllCalculations()">⚖️ Calculate Balance Results</button>
+                <button class="btn-reset" onclick="resetFormQuantities()">Reset All Inputs</button>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        let weights = { red: 0, orange: 0, green: 0, blue: 0, purple: 0 };
+        const colors = ['red', 'orange', 'green', 'blue', 'purple'];
+        const colorLabels = { red: 'Red', orange: 'Orange', green: 'Green', blue: 'Blue', purple: 'Purple' };
+
+        function startGame() {
+            weights.red = parseInt(document.getElementById('w-red').value) || 0;
+            weights.orange = parseInt(document.getElementById('w-orange').value) || 0;
+            weights.green = parseInt(document.getElementById('w-green').value) || 0;
+            weights.blue = parseInt(document.getElementById('w-blue').value) || 0;
+            weights.purple = parseInt(document.getElementById('w-purple').value) || 0;
+
+            document.getElementById('setup-section').style.display = 'none';
+            document.getElementById('game-section').style.display = 'block';
+            
+            processAllCalculations();
+        }
+
+        function processAllCalculations() {
+            calculateScale('primary', 'p');
+            calculateScale('secondary', 's');
+        }
+
+        function renderPanCubes(blocksShelf, cubesShelf, inputPrefix, sideKey) {
+            let runningTotalWeight = 0;
+
+            colors.forEach(color => {
+                let inputDom = document.getElementById(`in-${inputPrefix}-${sideKey}-${color}`);
+                let count = Math.max(0, parseInt(inputDom.value) || 0);
+                inputDom.value = count; 
+
+                runningTotalWeight += count * weights[color];
+                
+                if (count > 0) {
+                    if (count > 10) {
+                        let strip = document.createElement('div');
+                        strip.className = "color-row-strip";
+                        strip.style.backgroundColor = `var(--${color})`;
+                        strip.innerHTML = `
+                            <span>${colorLabels[color]}</span>
+                            <div class="mini-cube-icon-container">
+                                <div class="mini-cube-dot"></div>
+                                <span>x${count}</span>
+                            </div>
+                        `;
+                        blocksShelf.appendChild(strip);
+                    } else {
+                        for (let i = 0; i < count; i++) {
+                            let cube = document.createElement('div');
+                            cube.className = "cube-sprite";
+                            cube.style.backgroundColor = `var(--${color})`;
+                            cubesShelf.appendChild(cube);
+                        }
+                    }
+                }
+            });
+
+            return runningTotalWeight;
+        }
+
+        function calculateScale(scaleKey, inputPrefix) {
+            let blocksLeft = document.getElementById(`blocks-${scaleKey}-left`);
+            let cubesLeft = document.getElementById(`cubes-${scaleKey}-left`);
+            let blocksRight = document.getElementById(`blocks-${scaleKey}-right`);
+            let cubesRight = document.getElementById(`cubes-${scaleKey}-right`);
+
+            blocksLeft.innerHTML = '';
+            cubesLeft.innerHTML = '';
+            blocksRight.innerHTML = '';
+            cubesRight.innerHTML = '';
+
+            let leftTotalWeight = renderPanCubes(blocksLeft, cubesLeft, inputPrefix, 'l');
+            let rightTotalWeight = renderPanCubes(blocksRight, cubesRight, inputPrefix, 'r');
+
+            let beam = document.getElementById(`beam-${scaleKey}`);
+            let panLeftEl = document.getElementById(`pan-${scaleKey}-left`);
+            let panRightEl = document.getElementById(`pan-${scaleKey}-right`);
+            let textDisplay = document.getElementById(`result-${scaleKey}`);
+            textDisplay.className = "result-box";
+
+            let angle = 0;
+            if (leftTotalWeight > rightTotalWeight) {
+                angle = -6;
+                textDisplay.classList.add('left-heavy');
+                textDisplay.innerHTML = "👈 LEFT SIDE IS HEAVIER";
+            } else if (leftTotalWeight < rightTotalWeight) {
+                angle = 6;
+                textDisplay.classList.add('right-heavy');
+                textDisplay.innerHTML = "👉 RIGHT SIDE IS HEAVIER";
+            } else {
+                angle = 0;
+                textDisplay.classList.add('balanced');
+                textDisplay.innerHTML = "⚖️ BALANCED";
+            }
+
+            beam.style.transform = `rotate(${angle}deg)`;
+            panLeftEl.style.transform = `translateX(-50%) rotate(${-angle}deg)`;
+            panRightEl.style.transform = `translateX(-50%) rotate(${-angle}deg)`;
+        }
+
+        function resetFormQuantities() {
+            const inputs = document.querySelectorAll('.table-input');
+            inputs.forEach(input => input.value = 0);
+            processAllCalculations();
+        }
+    </script>
+</body>
+</html>
