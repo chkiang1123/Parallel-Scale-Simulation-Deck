@@ -197,7 +197,7 @@
         .hanger-left { left: 10px; }
         .hanger-right { right: 10px; }
 
-        /* Modified Pan holding structurally sound physics distribution */
+        /* Pan configuration ensuring items build up sequentially from floor up */
         .pan {
             position: absolute;
             top: 50px;
@@ -211,7 +211,7 @@
             transform-origin: top center;
             transition: transform 0.5s ease-in-out;
             display: flex;
-            flex-direction: column-reverse; /* Stacks children directly from the bottom floor up! */
+            flex-direction: column-reverse; 
             justify-content: flex-start;
             padding: 8px;
             box-sizing: border-box;
@@ -220,7 +220,7 @@
         .pan-left { left: 50%; }
         .pan-right { left: 50%; }
 
-        /* Physics Layer 1 (Bottom): Aggregate heavy weight blocks */
+        /* Physics Layer 1 (Bottom shelf): Heavy aggregate x10 blocks */
         .pan-blocks-shelf {
             display: flex;
             flex-direction: column;
@@ -228,7 +228,7 @@
             width: 100%;
         }
 
-        /* Physics Layer 2 (Top): Loose individual items stacking on top of blocks */
+        /* Physics Layer 2 (Top shelf): Loose cubes that rest above blocks */
         .pan-cubes-shelf {
             display: flex;
             flex-wrap: wrap;
