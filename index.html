@@ -146,6 +146,7 @@
             padding: 0 10px 20px 10px;
             box-sizing: border-box;
             width: 100%;
+            overflow: hidden;
         }
 
         .scale-base {
@@ -172,8 +173,6 @@
             top: 80px;
             width: 90%; 
             max-width: 500px;
-            left: auto;
-            transition: transform 0.5s ease-in-out;
             transform-origin: center center;
             z-index: 2;
         }
@@ -197,7 +196,6 @@
         .hanger-left { left: 10px; }
         .hanger-right { right: 10px; }
 
-        /* Pan configuration ensuring items build up sequentially from floor up */
         .pan {
             position: absolute;
             top: 50px;
@@ -209,7 +207,6 @@
             border-radius: 4px 4px 12px 12px;
             transform: translateX(-50%) rotate(0deg);
             transform-origin: top center;
-            transition: transform 0.5s ease-in-out;
             display: flex;
             flex-direction: column-reverse; 
             justify-content: flex-start;
@@ -220,7 +217,6 @@
         .pan-left { left: 50%; }
         .pan-right { left: 50%; }
 
-        /* Physics Layer 1 (Bottom shelf): Heavy aggregate x10 blocks */
         .pan-blocks-shelf {
             display: flex;
             flex-direction: column;
@@ -228,7 +224,6 @@
             width: 100%;
         }
 
-        /* Physics Layer 2 (Top shelf): Loose cubes that rest above blocks */
         .pan-cubes-shelf {
             display: flex;
             flex-wrap: wrap;
@@ -244,7 +239,7 @@
             height: 14px;
             border-radius: 3px;
             box-shadow: inset 0 0 4px rgba(0,0,0,0.6), 0 1px 2px rgba(0,0,0,0.3);
-            animation: popIn 0.2s ease-out;
+            animation: instantDrop 0.25s ease-out;
         }
 
         .color-row-strip {
@@ -260,12 +255,12 @@
             font-weight: bold;
             color: #000;
             box-shadow: inset 0 0 4px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.2);
-            animation: popIn 0.2s ease-out;
+            animation: instantDrop 0.25s ease-out;
         }
 
-        @keyframes popIn {
-            from { transform: scale(0.8); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
+        @keyframes instantDrop {
+            from { transform: translateY(-8px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
         }
 
         .mini-cube-icon-container {
@@ -280,7 +275,64 @@
             border-radius: 1px;
         }
 
-        /* Results Banners */
+        /* --- DAMPED OSCILLATION KEYFRAMES (PHYSICS SWING) --- */
+        .swing-left-heavy { animation: animBeamLeft 1.2s ease-in-out forwards; }
+        .counter-left-heavy { animation: animPanLeft 1.2s ease-in-out forwards; }
+        @keyframes animBeamLeft {
+            0%   { transform: rotate(0deg); }
+            30%  { transform: rotate(-8deg); }
+            55%  { transform: rotate(-4.5deg); }
+            75%  { transform: rotate(-6.8deg); }
+            90%  { transform: rotate(-5.8deg); }
+            100% { transform: rotate(-6deg); }
+        }
+        @keyframes animPanLeft {
+            0%   { transform: translateX(-50%) rotate(0deg); }
+            30%  { transform: translateX(-50%) rotate(8deg); }
+            55%  { transform: translateX(-50%) rotate(4.5deg); }
+            75%  { transform: translateX(-50%) rotate(6.8deg); }
+            90%  { transform: translateX(-50%) rotate(5.8deg); }
+            100% { transform: translateX(-50%) rotate(6deg); }
+        }
+
+        .swing-right-heavy { animation: animBeamRight 1.2s ease-in-out forwards; }
+        .counter-right-heavy { animation: animPanRight 1.2s ease-in-out forwards; }
+        @keyframes animBeamRight {
+            0%   { transform: rotate(0deg); }
+            30%  { transform: rotate(8deg); }
+            55%  { transform: rotate(4.5deg); }
+            75%  { transform: rotate(6.8deg); }
+            90%  { transform: rotate(5.8deg); }
+            100% { transform: rotate(6deg); }
+        }
+        @keyframes animPanRight {
+            0%   { transform: translateX(-50%) rotate(0deg); }
+            30%  { transform: translateX(-50%) rotate(-8deg); }
+            55%  { transform: translateX(-50%) rotate(-4.5deg); }
+            75%  { transform: translateX(-50%) rotate(-6.8deg); }
+            90%  { transform: translateX(-50%) rotate(-5.8deg); }
+            100% { transform: translateX(-50%) rotate(-6deg); }
+        }
+
+        .swing-balanced { animation: animBeamBalanced 1.2s ease-in-out forwards; }
+        .counter-balanced { animation: animPanBalanced 1.2s ease-in-out forwards; }
+        @keyframes animBeamBalanced {
+            0%   { transform: rotate(0deg); }
+            25%  { transform: rotate(-3deg); }
+            50%  { transform: rotate(2.5deg); }
+            70%  { transform: rotate(-1.2deg); }
+            85%  { transform: rotate(0.6deg); }
+            100% { transform: rotate(0deg); }
+        }
+        @keyframes animPanBalanced {
+            0%   { transform: translateX(-50%) rotate(0deg); }
+            25%  { transform: translateX(-50%) rotate(3deg); }
+            50%  { transform: translateX(-50%) rotate(-2.5deg); }
+            70%  { transform: translateX(-50%) rotate(1.2deg); }
+            85%  { transform: translateX(-50%) rotate(-0.6deg); }
+            100% { transform: translateX(-50%) rotate(0deg); }
+        }
+
         .result-box {
             background: #111;
             padding: 15px;
@@ -290,12 +342,21 @@
             font-weight: bold;
             margin-bottom: 20px;
             border-left: 6px solid #555;
+            transition: all 0.3s ease;
+        }
+        .weighing {
+            color: #888;
+            border-left-color: #888;
+            animation: pulseText 0.6s infinite alternate;
+        }
+        @keyframes pulseText {
+            from { opacity: 0.5; }
+            to { opacity: 1; }
         }
         .balanced { color: #2ecc71; border-left-color: #2ecc71; }
         .left-heavy { color: #f1c40f; border-left-color: #f1c40f; }
         .right-heavy { color: #e67e22; border-left-color: #e67e22; }
 
-        /* --- INPUT TABLES DESIGN --- */
         .table-container {
             background: #1f1f26;
             border-radius: 8px;
@@ -312,72 +373,30 @@
             text-align: center;
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th, td {
-            padding: 8px;
-            text-align: center;
-            border-bottom: 1px solid #2d2d37;
-        }
-
-        th {
-            background-color: #141419;
-            font-size: 13px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: #999;
-        }
-
-        .color-cell {
-            display: flex;
-            align-items: center;
-            justify-content: flex-start;
-            gap: 10px;
-            font-weight: bold;
-            font-size: 14px;
-            padding-left: 10px;
-        }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 8px; text-align: center; border-bottom: 1px solid #2d2d37; }
+        th { background-color: #141419; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; color: #999; }
+        
+        .color-cell { display: flex; align-items: center; justify-content: flex-start; gap: 10px; font-weight: bold; font-size: 14px; padding-left: 10px; }
         .color-dot { width: 12px; height: 12px; border-radius: 3px; }
+        .table-input { width: 70px; padding: 6px; font-size: 14px; }
 
-        .table-input {
-            width: 70px;
-            padding: 6px;
-            font-size: 14px;
-        }
-
-        /* --- GLOBAL CONTROL ACTIONS --- */
         .bottom-actions {
-            width: 100%;
-            margin-top: 25px;
-            padding-top: 20px;
-            border-top: 2px solid rgba(255,255,255,0.05);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 15px;
+            width: 100%; margin-top: 25px; padding-top: 20px;
+            border-top: 2px solid rgba(255,255,255,0.05); display: flex;
+            flex-direction: column; align-items: center; gap: 15px;
         }
 
         .btn-calculate {
-            background-color: #3498db;
-            color: white;
-            font-size: 20px;
-            padding: 15px 60px;
-            border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
+            background-color: #3498db; color: white; font-size: 20px;
+            padding: 15px 60px; border-radius: 8px; box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
             letter-spacing: 0.5px;
         }
         .btn-calculate:hover { background-color: #2980b9; transform: translateY(-1px); }
         .btn-calculate:active { transform: translateY(1px); }
+        .btn-calculate:disabled { background-color: #555; cursor: not-allowed; box-shadow: none; }
 
-        .btn-reset {
-            background: #e74c3c;
-            color: white;
-            padding: 8px 20px;
-            font-size: 14px;
-        }
+        .btn-reset { background: #e74c3c; color: white; padding: 8px 20px; font-size: 14px; }
         .btn-reset:hover { background: #c0392b; }
     </style>
 </head>
@@ -419,7 +438,6 @@
                 
                 <div class="scale-column primary-col">
                     <div class="scale-title" style="color: var(--gold);">⭐ Primary Scale</div>
-                    
                     <div class="scale-graphic-container">
                         <div class="scale-base"><div class="scale-pillar"></div></div>
                         <div id="beam-primary" class="scale-beam-assembly">
@@ -446,37 +464,33 @@
                         <h3>Primary Cube Quantities</h3>
                         <table>
                             <thead>
-                                <tr>
-                                    <th>Cube Color</th>
-                                    <th>👈 Left Pan</th>
-                                    <th>👉 Right Pan</th>
-                                </tr>
+                                <tr><th>Cube Color</th><th>👈 Left Pan</th><th>👉 Right Pan</th></tr>
                             </thead>
                             <tbody>
                                 <tr>
                                     <td class="color-cell"><div class="color-dot" style="background: var(--red);"></div> Red</td>
-                                    <td><input type="number" id="in-p-l-red" class="table-input" value="0" min="0" max="100"></td>
-                                    <td><input type="number" id="in-p-r-red" class="table-input" value="0" min="0" max="100"></td>
+                                    <td><input type="number" id="in-p-l-red" class="table-input" value="0" min="0"></td>
+                                    <td><input type="number" id="in-p-r-red" class="table-input" value="0" min="0"></td>
                                 </tr>
                                 <tr>
                                     <td class="color-cell"><div class="color-dot" style="background: var(--orange);"></div> Orange</td>
-                                    <td><input type="number" id="in-p-l-orange" class="table-input" value="0" min="0" max="100"></td>
-                                    <td><input type="number" id="in-p-r-orange" class="table-input" value="0" min="0" max="100"></td>
+                                    <td><input type="number" id="in-p-l-orange" class="table-input" value="0" min="0"></td>
+                                    <td><input type="number" id="in-p-r-orange" class="table-input" value="0" min="0"></td>
                                 </tr>
                                 <tr>
                                     <td class="color-cell"><div class="color-dot" style="background: var(--green);"></div> Green</td>
-                                    <td><input type="number" id="in-p-l-green" class="table-input" value="0" min="0" max="100"></td>
-                                    <td><input type="number" id="in-p-r-green" class="table-input" value="0" min="0" max="100"></td>
+                                    <td><input type="number" id="in-p-l-green" class="table-input" value="0" min="0"></td>
+                                    <td><input type="number" id="in-p-r-green" class="table-input" value="0" min="0"></td>
                                 </tr>
                                 <tr>
                                     <td class="color-cell"><div class="color-dot" style="background: var(--blue);"></div> Blue</td>
-                                    <td><input type="number" id="in-p-l-blue" class="table-input" value="0" min="0" max="100"></td>
-                                    <td><input type="number" id="in-p-r-blue" class="table-input" value="0" min="0" max="100"></td>
+                                    <td><input type="number" id="in-p-l-blue" class="table-input" value="0" min="0"></td>
+                                    <td><input type="number" id="in-p-r-blue" class="table-input" value="0" min="0"></td>
                                 </tr>
                                 <tr>
                                     <td class="color-cell"><div class="color-dot" style="background: var(--purple);"></div> Purple</td>
-                                    <td><input type="number" id="in-p-l-purple" class="table-input" value="0" min="0" max="100"></td>
-                                    <td><input type="number" id="in-p-r-purple" class="table-input" value="0" min="0" max="100"></td>
+                                    <td><input type="number" id="in-p-l-purple" class="table-input" value="0" min="0"></td>
+                                    <td><input type="number" id="in-p-r-purple" class="table-input" value="0" min="0"></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -485,7 +499,6 @@
 
                 <div class="scale-column secondary-col">
                     <div class="scale-title" style="color: var(--silver);">🌙 Secondary Scale</div>
-                    
                     <div class="scale-graphic-container">
                         <div class="scale-base"><div class="scale-pillar"></div></div>
                         <div id="beam-secondary" class="scale-beam-assembly">
@@ -512,37 +525,33 @@
                         <h3>Secondary Cube Quantities</h3>
                         <table>
                             <thead>
-                                <tr>
-                                    <th>Cube Color</th>
-                                    <th>👈 Left Pan</th>
-                                    <th>👉 Right Pan</th>
-                                </tr>
+                                <tr><th>Cube Color</th><th>👈 Left Pan</th><th>👉 Right Pan</th></tr>
                             </thead>
                             <tbody>
                                 <tr>
                                     <td class="color-cell"><div class="color-dot" style="background: var(--red);"></div> Red</td>
-                                    <td><input type="number" id="in-s-l-red" class="table-input" value="0" min="0" max="100"></td>
-                                    <td><input type="number" id="in-s-r-red" class="table-input" value="0" min="0" max="100"></td>
+                                    <td><input type="number" id="in-s-l-red" class="table-input" value="0" min="0"></td>
+                                    <td><input type="number" id="in-s-r-red" class="table-input" value="0" min="0"></td>
                                 </tr>
                                 <tr>
                                     <td class="color-cell"><div class="color-dot" style="background: var(--orange);"></div> Orange</td>
-                                    <td><input type="number" id="in-s-l-orange" class="table-input" value="0" min="0" max="100"></td>
-                                    <td><input type="number" id="in-s-r-orange" class="table-input" value="0" min="0" max="100"></td>
+                                    <td><input type="number" id="in-s-l-orange" class="table-input" value="0" min="0"></td>
+                                    <td><input type="number" id="in-s-r-orange" class="table-input" value="0" min="0"></td>
                                 </tr>
                                 <tr>
                                     <td class="color-cell"><div class="color-dot" style="background: var(--green);"></div> Green</td>
-                                    <td><input type="number" id="in-s-l-green" class="table-input" value="0" min="0" max="100"></td>
-                                    <td><input type="number" id="in-s-r-green" class="table-input" value="0" min="0" max="100"></td>
+                                    <td><input type="number" id="in-s-l-green" class="table-input" value="0" min="0"></td>
+                                    <td><input type="number" id="in-s-r-green" class="table-input" value="0" min="0"></td>
                                 </tr>
                                 <tr>
                                     <td class="color-cell"><div class="color-dot" style="background: var(--blue);"></div> Blue</td>
-                                    <td><input type="number" id="in-s-l-blue" class="table-input" value="0" min="0" max="100"></td>
-                                    <td><input type="number" id="in-s-r-blue" class="table-input" value="0" min="0" max="100"></td>
+                                    <td><input type="number" id="in-s-l-blue" class="table-input" value="0" min="0"></td>
+                                    <td><input type="number" id="in-s-r-blue" class="table-input" value="0" min="0"></td>
                                 </tr>
                                 <tr>
                                     <td class="color-cell"><div class="color-dot" style="background: var(--purple);"></div> Purple</td>
-                                    <td><input type="number" id="in-s-l-purple" class="table-input" value="0" min="0" max="100"></td>
-                                    <td><input type="number" id="in-s-r-purple" class="table-input" value="0" min="0" max="100"></td>
+                                    <td><input type="number" id="in-s-l-purple" class="table-input" value="0" min="0"></td>
+                                    <td><input type="number" id="in-s-r-purple" class="table-input" value="0" min="0"></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -552,7 +561,7 @@
             </div>
 
             <div class="bottom-actions">
-                <button class="btn-calculate" onclick="processAllCalculations()">⚖️ Calculate Balance Results</button>
+                <button id="btn-calc" class="btn-calculate" onclick="processAllCalculations()">⚖️ Calculate Balance Results</button>
                 <button class="btn-reset" onclick="resetFormQuantities()">Reset All Inputs</button>
             </div>
 
@@ -564,6 +573,9 @@
         const colors = ['red', 'orange', 'green', 'blue', 'purple'];
         const colorLabels = { red: 'Red', orange: 'Orange', green: 'Green', blue: 'Blue', purple: 'Purple' };
 
+        // THIS IS YOUR UNIQUE DEPLOYMENT URL
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz-cDLyMELacuiJrmhOJOAinVK97bPCvI_rhE2xz-F64fHNwV3abEBF0gMQ92GWLSS8Dw/exec";
+
         function startGame() {
             weights.red = parseInt(document.getElementById('w-red').value) || 0;
             weights.orange = parseInt(document.getElementById('w-orange').value) || 0;
@@ -574,17 +586,51 @@
             document.getElementById('setup-section').style.display = 'none';
             document.getElementById('game-section').style.display = 'block';
             
-            processAllCalculations();
+            processAllCalculations(true); 
         }
 
-        function processAllCalculations() {
-            calculateScale('primary', 'p');
-            calculateScale('secondary', 's');
+        function extractPanDataString(scaleKey, sideKey) {
+            let r = document.getElementById(`in-${scaleKey}-${sideKey}-red`).value || 0;
+            let o = document.getElementById(`in-${scaleKey}-${sideKey}-orange`).value || 0;
+            let g = document.getElementById(`in-${scaleKey}-${sideKey}-green`).value || 0;
+            let b = document.getElementById(`in-${scaleKey}-${sideKey}-blue`).value || 0;
+            let p = document.getElementById(`in-${scaleKey}-${sideKey}-purple`).value || 0;
+            return `R:${r} | O:${o} | G:${g} | B:${b} | P:${p}`;
+        }
+
+        function processAllCalculations(isInit = false) {
+            const btnCalc = document.getElementById('btn-calc');
+            btnCalc.disabled = true;
+
+            const resPrimary = calculateScale('primary', 'p');
+            const resSecondary = calculateScale('secondary', 's');
+
+            setTimeout(() => { btnCalc.disabled = false; }, 1250);
+
+            if (isInit) return;
+
+            let payloadData = {
+                weights: `R:${weights.red} | O:${weights.orange} | G:${weights.green} | B:${weights.blue} | P:${weights.purple}`,
+                primaryLeft: extractPanDataString('p', 'l'),
+                primaryRight: extractPanDataString('p', 'r'),
+                primaryResult: resPrimary,
+                secondaryLeft: extractPanDataString('s', 'l'),
+                secondaryRight: extractPanDataString('s', 'r'),
+                secondaryResult: resSecondary
+            };
+
+            // Sends data silently via the standard Web API fetch instead of google.script.run
+            fetch(WEB_APP_URL, {
+                method: "POST",
+                body: JSON.stringify(payloadData)
+            }).catch(error => {
+                // If it fails (e.g. adblocker, network down), it silently logs to dev tools. Students see nothing.
+                console.error("Transmission silent error."); 
+            });
         }
 
         function renderPanCubes(blocksShelf, cubesShelf, inputPrefix, sideKey) {
             let runningTotalWeight = 0;
-
             colors.forEach(color => {
                 let inputDom = document.getElementById(`in-${inputPrefix}-${sideKey}-${color}`);
                 let count = Math.max(0, parseInt(inputDom.value) || 0);
@@ -597,13 +643,7 @@
                         let strip = document.createElement('div');
                         strip.className = "color-row-strip";
                         strip.style.backgroundColor = `var(--${color})`;
-                        strip.innerHTML = `
-                            <span>${colorLabels[color]}</span>
-                            <div class="mini-cube-icon-container">
-                                <div class="mini-cube-dot"></div>
-                                <span>x${count}</span>
-                            </div>
-                        `;
+                        strip.innerHTML = `<span>${colorLabels[color]}</span><div class="mini-cube-icon-container"><div class="mini-cube-dot"></div><span>x${count}</span></div>`;
                         blocksShelf.appendChild(strip);
                     } else {
                         for (let i = 0; i < count; i++) {
@@ -615,7 +655,6 @@
                     }
                 }
             });
-
             return runningTotalWeight;
         }
 
@@ -625,10 +664,8 @@
             let blocksRight = document.getElementById(`blocks-${scaleKey}-right`);
             let cubesRight = document.getElementById(`cubes-${scaleKey}-right`);
 
-            blocksLeft.innerHTML = '';
-            cubesLeft.innerHTML = '';
-            blocksRight.innerHTML = '';
-            cubesRight.innerHTML = '';
+            blocksLeft.innerHTML = ''; cubesLeft.innerHTML = '';
+            blocksRight.innerHTML = ''; cubesRight.innerHTML = '';
 
             let leftTotalWeight = renderPanCubes(blocksLeft, cubesLeft, inputPrefix, 'l');
             let rightTotalWeight = renderPanCubes(blocksRight, cubesRight, inputPrefix, 'r');
@@ -637,32 +674,41 @@
             let panLeftEl = document.getElementById(`pan-${scaleKey}-left`);
             let panRightEl = document.getElementById(`pan-${scaleKey}-right`);
             let textDisplay = document.getElementById(`result-${scaleKey}`);
-            textDisplay.className = "result-box";
 
-            let angle = 0;
+            beam.className = "scale-beam-assembly";
+            panLeftEl.className = `pan pan-left`;
+            panRightEl.className = `pan pan-right`;
+            void beam.offsetWidth;
+
+            textDisplay.className = "result-box weighing";
+            textDisplay.innerHTML = "⚖️ WEIGHING...";
+
+            let finalStateText = "⚖️ BALANCED";
+            let finalClass = "balanced";
+
             if (leftTotalWeight > rightTotalWeight) {
-                angle = -6;
-                textDisplay.classList.add('left-heavy');
-                textDisplay.innerHTML = "👈 LEFT SIDE IS HEAVIER";
+                beam.classList.add("swing-left-heavy"); panLeftEl.classList.add("counter-left-heavy"); panRightEl.classList.add("counter-left-heavy");
+                finalStateText = "👈 LEFT SIDE IS HEAVIER"; finalClass = "left-heavy";
             } else if (leftTotalWeight < rightTotalWeight) {
-                angle = 6;
-                textDisplay.classList.add('right-heavy');
-                textDisplay.innerHTML = "👉 RIGHT SIDE IS HEAVIER";
+                beam.classList.add("swing-right-heavy"); panLeftEl.classList.add("counter-right-heavy"); panRightEl.classList.add("counter-right-heavy");
+                finalStateText = "👉 RIGHT SIDE IS HEAVIER"; finalClass = "right-heavy";
             } else {
-                angle = 0;
-                textDisplay.classList.add('balanced');
-                textDisplay.innerHTML = "⚖️ BALANCED";
+                beam.classList.add("swing-balanced"); panLeftEl.classList.add("counter-balanced"); panRightEl.classList.add("counter-balanced");
+                finalStateText = "⚖️ BALANCED"; finalClass = "balanced";
             }
 
-            beam.style.transform = `rotate(${angle}deg)`;
-            panLeftEl.style.transform = `translateX(-50%) rotate(${-angle}deg)`;
-            panRightEl.style.transform = `translateX(-50%) rotate(${-angle}deg)`;
+            setTimeout(() => {
+                textDisplay.className = `result-box ${finalClass}`;
+                textDisplay.innerHTML = finalStateText;
+            }, 1200);
+
+            return finalStateText;
         }
 
         function resetFormQuantities() {
             const inputs = document.querySelectorAll('.table-input');
             inputs.forEach(input => input.value = 0);
-            processAllCalculations();
+            processAllCalculations(true); 
         }
     </script>
 </body>
